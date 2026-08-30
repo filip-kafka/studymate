@@ -1,0 +1,1 @@
+A CLI tool that times study sessions, asks you how each one went, stores the results in a pluggable backend, and eventually tells you when and where you study best.
