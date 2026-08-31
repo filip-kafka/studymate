@@ -49,7 +49,7 @@ class SessionServiceTest {
 		RunningSession running = service.startSession("Java Generics");
 
 		assertAll(
-				() -> assertEquals("Java Generics", running.topic()),
+				() -> assertEquals(new Topic("Java Generics"), running.topic()),
 				() -> assertEquals(SAFE_DATE, running.start())
 		);
 	}
@@ -77,7 +77,7 @@ class SessionServiceTest {
 	@DisplayName("Surrounding whitespace is trimmed from the topic")
 	void startSession_trimsTopic() {
 		RunningSession running = service.startSession("  Java Generics  ");
-		assertEquals("Java Generics", running.topic());
+		assertEquals(new Topic("Java Generics"), running.topic());
 	}
 
 	// ====================
@@ -93,7 +93,7 @@ class SessionServiceTest {
 		CompletedSession completed = service.endSession(running);
 
 		assertAll(
-				() -> assertEquals("Java Generics", completed.topic()),
+				() -> assertEquals(new Topic("Java Generics"), completed.topic()),
 				() -> assertEquals(SAFE_DATE, completed.start())
 		);
 	}

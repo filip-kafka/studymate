@@ -15,7 +15,7 @@ class CompletedSessionTest {
 	@DisplayName("A completed session cannot end before it started")
 	void completedSession_rejectsEndBeforeStart() {
 		assertThrows(IllegalArgumentException.class,
-				() -> new CompletedSession("Test", SAFE_DATE, SAFE_DATE.minusSeconds(1)));
+				() -> new CompletedSession(new Topic("Test"), SAFE_DATE, SAFE_DATE.minusSeconds(1)));
 	}
 
 }
