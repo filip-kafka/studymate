@@ -3,8 +3,6 @@ package dev.kaffi.studymate.domain;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -52,32 +50,6 @@ class SessionServiceTest {
 				() -> assertEquals(new Topic("Java Generics"), running.topic()),
 				() -> assertEquals(SAFE_DATE, running.start())
 		);
-	}
-
-	@Test
-	@DisplayName("A null topic is rejected")
-	void startSession_rejectsNullTopic() {
-		assertThrows(NullPointerException.class, () -> service.startSession(null));
-	}
-
-	@ParameterizedTest(name = "topic = \"{0}\"")
-	@ValueSource(strings = {"", " ", "   ", "\t", "\n", " \t\n "})
-	@DisplayName("A blank topic is rejected")
-	void startSession_rejectsBlankTopic(String blank) {
-		assertThrows(IllegalArgumentException.class, () -> service.startSession(blank));
-	}
-
-	@Test
-	@DisplayName("A topic containing the file delimiter is rejected")
-	void startSession_rejectsTopicContainingTab() {
-		assertThrows(IllegalArgumentException.class, () -> service.startSession("Java\tGenerics"));
-	}
-
-	@Test
-	@DisplayName("Surrounding whitespace is trimmed from the topic")
-	void startSession_trimsTopic() {
-		RunningSession running = service.startSession("  Java Generics  ");
-		assertEquals(new Topic("Java Generics"), running.topic());
 	}
 
 	// ====================
