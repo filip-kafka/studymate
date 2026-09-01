@@ -2,53 +2,87 @@ package dev.kaffi.studymate.storage;
 
 import dev.kaffi.studymate.domain.CompletedSession;
 import dev.kaffi.studymate.domain.RunningSession;
-import dev.kaffi.studymate.domain.Session;
+import dev.kaffi.studymate.domain.StorageException;
+import dev.kaffi.studymate.domain.StorageManager;
+import dev.kaffi.studymate.domain.Topic;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.Optional;
 
 public final class FileStorageManager implements StorageManager {
 
-	public final Path BASE_STORAGE_PATH = Path.of(System.getProperty("user.home"), ".studymate");
+	private final Path runningStore;
+	private final Path completedStore;
 
-	public void storeSession(Session session) throws IOException {
-		if (!Files.exists(BASE_STORAGE_PATH)) {
-			Files.createDirectories(BASE_STORAGE_PATH);
-		}
-		switch (session) {
-			case null -> { return; }
-			case RunningSession s -> storeRunningSession(s);
-			case CompletedSession s -> storeCompletedSession(s);
-		};
-	}
-
-	public void deleteRunningSession() throws IOException {
-		Files.deleteIfExists(Path.of(BASE_STORAGE_PATH.toString(), "/running.txt"));
-	}
-
-	private void storeRunningSession(RunningSession s) {
-		File file = new File(Path.of(BASE_STORAGE_PATH.toString(), "/running.txt").toString());
-
-		if (file.exists()) {
-			throw new IllegalStateException("A session is already running, it is not possible to start another one.");
-		}
-
-		try (FileWriter fw = new FileWriter(file)) {
-			fw.write(String.format("%s\t%s", s.topic(), s.start().toString()));
+	public FileStorageManager(Path baseDir) {
+		try {
+			Files.createDirectories(baseDir);
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new StorageException("Could not create base directory.", e);
+		}
+
+		this.runningStore = baseDir.resolve("running.txt");
+		this.completedStore = baseDir.resolve("store.tsv");
+	}
+
+	@Override
+	public void storeRunningSession(RunningSession session) {
+		try {
+			Files.writeString(runningStore, String.format("%s\t%s\n", session.topic().value(), session.start()), StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);
+		} catch (FileAlreadyExistsException e) {
+			throw new StorageException("A session is already running, cannot create a new one.", e);
+		} catch (IOException e) {
+			throw new StorageException("Could not write running session.", e);
 		}
 	}
 
-	private void storeCompletedSession(CompletedSession s) {
-		File file = new File(Path.of(BASE_STORAGE_PATH.toString(), "/store.tsv").toString());
-		try (FileWriter fw = new FileWriter(file, true)) {
-			fw.append(String.format("%s\t%s\t%s\n", s.topic(), s.start().toString(), s.end().toString()));
+	@Override
+	public void clearRunningSession() {
+		try {
+			Files.deleteIfExists(runningStore);
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new StorageException("Could not delete running session file.", e);
 		}
+	}
+
+	@Override
+	public Optional<RunningSession> getRunningSession() {
+		try {
+			String[] fields = Files.readString(runningStore, StandardCharsets.UTF_8).strip().split("\t", -1);
+			if (fields.length != 2) {
+				throw new StorageException("The running session file [" + runningStore + "] is corrupted.");
+			}
+			return Optional.of(new RunningSession(new Topic(fields[0]), Instant.parse(fields[1])));
+		} catch (NoSuchFileException e) {
+			return Optional.empty();
+		} catch (DateTimeParseException | IllegalArgumentException e) {
+			throw new StorageException("Failed to recreate the RunningSession", e);
+		} catch (IOException e) {
+			throw new StorageException("Failed to read file " + runningStore, e);
+		}
+	}
+
+	@Override
+	public void storeCompletedSession(CompletedSession session) {
+		try {
+			Files.writeString(completedStore, String.format("%s\t%s\t%s\n", session.topic().value(), session.start(), session.end()), StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+		} catch (IOException e) {
+			throw new StorageException("Could not write completed session.", e);
+		}
+	}
+
+	@Override
+	public List<CompletedSession> getCompletedSessions(Instant from, Instant toExclusive) {
+		// TODO: will be implemented - returns List of CompletedSessions with start in range of <from, toExclusive)
+		return List.of();
 	}
 }
