@@ -17,6 +17,7 @@ import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public final class FileStorageManager implements StorageManager {
@@ -25,6 +26,7 @@ public final class FileStorageManager implements StorageManager {
 	private final Path completedStore;
 
 	public FileStorageManager(Path baseDir) {
+		Objects.requireNonNull(baseDir, "Base directory path must not be null");
 		try {
 			Files.createDirectories(baseDir);
 		} catch (IOException e) {
@@ -37,6 +39,7 @@ public final class FileStorageManager implements StorageManager {
 
 	@Override
 	public void storeRunningSession(RunningSession session) {
+		Objects.requireNonNull(session, "Session must not be null");
 		try {
 			Files.writeString(runningStore, String.format("%s\t%s\n", session.topic().value(), session.start()), StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);
 		} catch (FileAlreadyExistsException e) {
@@ -58,7 +61,7 @@ public final class FileStorageManager implements StorageManager {
 	@Override
 	public Optional<RunningSession> getRunningSession() {
 		try {
-			String[] fields = Files.readString(runningStore, StandardCharsets.UTF_8).strip().split("\t", -1);
+			String[] fields = Files.readString(runningStore, StandardCharsets.UTF_8).lines().findFirst().orElse("").split("\t", -1);
 			if (fields.length != 2) {
 				throw new StorageException("The running session file [" + runningStore + "] is corrupted.");
 			}
@@ -74,6 +77,7 @@ public final class FileStorageManager implements StorageManager {
 
 	@Override
 	public void storeCompletedSession(CompletedSession session) {
+		Objects.requireNonNull(session, "Session must not be null");
 		try {
 			Files.writeString(completedStore, String.format("%s\t%s\t%s\n", session.topic().value(), session.start(), session.end()), StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
 		} catch (IOException e) {

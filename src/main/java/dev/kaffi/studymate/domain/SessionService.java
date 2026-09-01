@@ -11,10 +11,12 @@ public final class SessionService {
 	}
 
 	public RunningSession startSession(String topic) {
+		Objects.requireNonNull(topic, "Topic must not be null");
 		return new RunningSession(new Topic(topic), clock.instant());
 	}
 
 	public CompletedSession endSession(RunningSession session) {
+		Objects.requireNonNull(session, "Session must not be null");
 		return session.finish(clock.instant());
 	}
 }

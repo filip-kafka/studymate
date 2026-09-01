@@ -1,10 +1,11 @@
 package dev.kaffi.studymate.domain;
 
-import org.jspecify.annotations.NonNull;
-
 import java.util.Objects;
 
 public record Topic(String value) {
+
+	private static final int MAX_LENGTH = 255;
+
 	public Topic {
 		Objects.requireNonNull(value, "Topic must not be null");
 
@@ -14,7 +15,7 @@ public record Topic(String value) {
 			throw new IllegalArgumentException("Topic cannot be empty.");
 		}
 
-		if (value.length() > 255) {
+		if (value.length() > MAX_LENGTH) {
 			throw new IllegalArgumentException("Topic length must not exceed 255 characters.");
 		}
 
@@ -24,7 +25,6 @@ public record Topic(String value) {
 	}
 
 	@Override
-	@NonNull
 	public String toString() {
 		return this.value();
 	}

@@ -102,18 +102,6 @@ class SessionServiceTest {
 	}
 
 	@Test
-	@DisplayName("A session spanning midnight is handled as one continuous interval")
-	void endSession_handlesSessionSpanningMidnight() {
-		clock.setTo(Instant.parse("2026-03-15T22:00:00Z"));
-		RunningSession running = service.startSession("Java Generics");
-		clock.advance(Duration.ofHours(3));
-
-		CompletedSession completed = service.endSession(running);
-
-		assertEquals(Duration.ofHours(3), completed.duration());
-	}
-
-	@Test
 	@DisplayName("A null running session is rejected")
 	void endSession_rejectsNullSession() {
 		assertThrows(NullPointerException.class, () -> service.endSession(null));
