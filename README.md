@@ -1,5 +1,4 @@
 ![build](https://github.com/filip-kafka/studymate/actions/workflows/build.yml/badge.svg)
-![build](https://github.com/filip-kafka/studymate/actions/workflows/build.yml/badge.svg)
 
 # StudyMate
 
