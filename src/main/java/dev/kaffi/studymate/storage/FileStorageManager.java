@@ -2,6 +2,7 @@ package dev.kaffi.studymate.storage;
 
 import dev.kaffi.studymate.domain.CompletedSession;
 import dev.kaffi.studymate.domain.RunningSession;
+import dev.kaffi.studymate.domain.SessionAlreadyRunningException;
 import dev.kaffi.studymate.domain.StorageException;
 import dev.kaffi.studymate.domain.StorageManager;
 import dev.kaffi.studymate.domain.Topic;
@@ -39,7 +40,7 @@ public final class FileStorageManager implements StorageManager {
 		try {
 			Files.writeString(runningStore, String.format("%s\t%s\n", session.topic().value(), session.start()), StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);
 		} catch (FileAlreadyExistsException e) {
-			throw new StorageException("A session is already running, cannot create a new one.", e);
+			throw new SessionAlreadyRunningException("A session is already running, cannot create a new one.", e);
 		} catch (IOException e) {
 			throw new StorageException("Could not write running session.", e);
 		}
