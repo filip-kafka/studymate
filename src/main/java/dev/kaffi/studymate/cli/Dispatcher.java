@@ -1,12 +1,16 @@
 package dev.kaffi.studymate.cli;
 
+import dev.kaffi.studymate.domain.CompletedSession;
 import dev.kaffi.studymate.domain.RunningSession;
 import dev.kaffi.studymate.domain.SessionService;
 import dev.kaffi.studymate.domain.StudyMateException;
 
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static dev.kaffi.studymate.cli.Outcome.*;
 
 public class Dispatcher {
 
@@ -20,7 +24,7 @@ public class Dispatcher {
 
 	public Result dispatch(String[] args) {
 		if (args.length == 0) {
-			return new Result("USAGE", Outcome.SUCCESS);
+			return new Result("USAGE", SUCCESS);
 		}
 
 		switch (args[0].toLowerCase()) {
@@ -29,14 +33,28 @@ public class Dispatcher {
 					String topic = Stream.of(args).skip(1).collect(Collectors.joining(" "));
 					RunningSession session = sessionService.startSession(topic);
 					String message = String.format("Started session '%s' at %s", topic, formatter.formatInstant(session.start()));
-					return new Result(message, Outcome.SUCCESS);
+					return new Result(message, SUCCESS);
 				} catch (StudyMateException e) {
-					return new Result(e.getMessage(), Outcome.USER_ERROR);
+					return new Result(e.getMessage(), USER_ERROR);
+				}
+			}
+			case "stop" -> {
+				try {
+					CompletedSession completedSession = sessionService.stopCurrentSession();
+					String message = String.format(
+							"Ended session '%s' at %s",
+							completedSession.topic(),
+							formatter.formatInstant(completedSession.end()));
+					return new Result(message, SUCCESS);
+				} catch (StudyMateException e) {
+					return new Result(e.getMessage(), USER_ERROR);
+				} catch (NoSuchElementException e) {
+					return new Result(e.getMessage(), SYSTEM_ERROR);
 				}
 			}
 
 			default -> {
-				return new Result("UNRECOGNIZED COMMAND", Outcome.USER_ERROR);
+				return new Result("UNRECOGNIZED COMMAND", USER_ERROR);
 			}
 		}
 	}
