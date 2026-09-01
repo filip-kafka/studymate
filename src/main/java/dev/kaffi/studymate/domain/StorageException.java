@@ -1,6 +1,6 @@
 package dev.kaffi.studymate.domain;
 
-public class StorageException extends RuntimeException {
+public class StorageException extends StudyMateException {
 	public StorageException(String message) {
 		super(message);
 	}
