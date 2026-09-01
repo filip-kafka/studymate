@@ -16,7 +16,7 @@ public record Topic(String value) {
 		}
 
 		if (value.length() > MAX_LENGTH) {
-			throw new IllegalArgumentException("Topic length must not exceed 255 characters.");
+			throw new IllegalArgumentException("Topic length must not exceed " + MAX_LENGTH + " characters.");
 		}
 
 		if (value.chars().anyMatch(Character::isISOControl)) {
