@@ -2,6 +2,7 @@ package dev.kaffi.studymate.domain;
 
 import java.time.Clock;
 import java.util.Objects;
+import java.util.Optional;
 
 public final class SessionService {
 	private final Clock clock;
@@ -24,12 +25,14 @@ public final class SessionService {
 		return session;
 	}
 
-	public CompletedSession endSession(RunningSession session) {
-		Objects.requireNonNull(session, "Session must not be null");
-
-		CompletedSession completedSession = session.finish(clock.instant());
+	public CompletedSession stopCurrentSession() {
+		CompletedSession completedSession = storageManager.getRunningSession().orElseThrow().finish(clock.instant());
 		storageManager.storeCompletedSession(completedSession);
 		storageManager.clearRunningSession();
 		return completedSession;
+	}
+
+	public Optional<RunningSession> getCurrentSession() {
+		return storageManager.getRunningSession();
 	}
 }

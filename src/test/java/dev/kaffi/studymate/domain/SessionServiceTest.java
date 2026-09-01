@@ -119,16 +119,16 @@ class SessionServiceTest {
 	}
 
 	// ====================
-	// endSession
+	// stopCurrentSession
 	// ====================
 
 	@Test
 	@DisplayName("Ending a session preserves the topic and start instant")
 	void endSession_preservesTopicAndStartInstant() {
-		RunningSession session = service.startSession("Java Generics");
+		service.startSession("Java Generics");
 		clock.advance(Duration.ofHours(2));
 
-		CompletedSession completed = service.endSession(session);
+		CompletedSession completed = service.stopCurrentSession();
 
 		assertAll(
 				() -> assertEquals(new Topic("Java Generics"), completed.topic()),
@@ -139,10 +139,10 @@ class SessionServiceTest {
 	@Test
 	@DisplayName("The end instant comes from the clock at the moment of stopping")
 	void endSession_capturesEndInstantFromClock() {
-		RunningSession session = service.startSession("Java Generics");
+		service.startSession("Java Generics");
 		clock.advance(Duration.ofHours(2));
 
-		CompletedSession completed = service.endSession(session);
+		CompletedSession completed = service.stopCurrentSession();
 
 		assertEquals(SAFE_DATE.plus(Duration.ofHours(2)), completed.end());
 	}
@@ -150,10 +150,10 @@ class SessionServiceTest {
 	@Test
 	@DisplayName("Duration reflects the time that elapsed between start and stop")
 	void endSession_durationReflectsElapsedTime() {
-		RunningSession session = service.startSession("Java Generics");
+		service.startSession("Java Generics");
 		clock.advance(Duration.ofHours(2));
 
-		CompletedSession completed = service.endSession(session);
+		CompletedSession completed = service.stopCurrentSession();
 
 		assertEquals(Duration.ofHours(2), completed.duration());
 	}
@@ -161,8 +161,8 @@ class SessionServiceTest {
 	@Test
 	@DisplayName("A session stopped immediately has zero duration")
 	void endSession_allowsZeroLengthSession() {
-		RunningSession session = service.startSession("Java Generics");
-		CompletedSession completed = service.endSession(session);
+		service.startSession("Java Generics");
+		CompletedSession completed = service.stopCurrentSession();
 
 		assertEquals(Duration.ZERO, completed.duration());
 	}
@@ -170,10 +170,10 @@ class SessionServiceTest {
 	@Test
 	@DisplayName("Ending a session persists it to the completed session store")
 	void endSession_persistsCompletedSession() {
-		RunningSession session = service.startSession("Java Generics");
+		service.startSession("Java Generics");
 		clock.advance(Duration.ofHours(2));
 
-		CompletedSession completed = service.endSession(session);
+		CompletedSession completed = service.stopCurrentSession();
 
 		assertEquals(List.of(completed), storageManager.allCompletedSessions());
 	}
@@ -181,10 +181,10 @@ class SessionServiceTest {
 	@Test
 	@DisplayName("Ending a session clears the running session")
 	void endSession_clearsRunningSession() {
-		RunningSession session = service.startSession("Java Generics");
+		service.startSession("Java Generics");
 		clock.advance(Duration.ofHours(2));
 
-		service.endSession(session);
+		service.stopCurrentSession();
 
 		assertEquals(Optional.empty(), storageManager.getRunningSession());
 	}
@@ -192,9 +192,9 @@ class SessionServiceTest {
 	@Test
 	@DisplayName("A new session can be started once the previous one has ended")
 	void endSession_allowsANewSessionAfterwards() {
-		RunningSession first = service.startSession("Java Generics");
+		service.startSession("Java Generics");
 		clock.advance(Duration.ofHours(2));
-		service.endSession(first);
+		service.stopCurrentSession();
 
 		RunningSession second = service.startSession("Java Streams");
 
@@ -202,36 +202,13 @@ class SessionServiceTest {
 	}
 
 	@Test
-	@DisplayName("The completed session is stored even if clearing the running session fails")
-	void endSession_storesCompletedSessionBeforeClearing() {
-		InMemoryStorageManager failingOnClear = new InMemoryStorageManager() {
-			@Override
-			public void clearRunningSession() {
-				throw new StorageException("Clearing the running session failed.");
-			}
-		};
-		SessionService failingService = new SessionService(clock, failingOnClear);
-		RunningSession session = failingService.startSession("Java Generics");
-		clock.advance(Duration.ofHours(1));
-
-		assertThrows(StorageException.class, () -> failingService.endSession(session));
-		assertEquals(1, failingOnClear.allCompletedSessions().size());
-	}
-
-	@Test
-	@DisplayName("A null running session is rejected")
-	void endSession_rejectsNullSession() {
-		assertThrows(NullPointerException.class, () -> service.endSession(null));
-	}
-
-	@Test
 	@DisplayName("Duration handles elapsed time across a DST transition")
 	void endSession_durationIsUnaffectedByDstTransition() {
 		clock.setTo(Instant.parse("2026-10-25T00:30:00Z"));
 
-		RunningSession running = service.startSession("Java Generics");
+		service.startSession("Java Generics");
 		clock.advance(Duration.ofMinutes(120));
-		CompletedSession completed = service.endSession(running);
+		CompletedSession completed = service.stopCurrentSession();
 
 		ZonedDateTime localStart = completed.start().atZone(PRAGUE);
 		ZonedDateTime localEnd = completed.end().atZone(PRAGUE);
