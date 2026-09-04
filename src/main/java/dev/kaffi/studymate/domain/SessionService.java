@@ -25,11 +25,15 @@ public final class SessionService {
 		return session;
 	}
 
-	public CompletedSession stopCurrentSession() {
-		CompletedSession completedSession = storageManager.getRunningSession().orElseThrow().finish(clock.instant());
-		storageManager.storeCompletedSession(completedSession);
-		storageManager.clearRunningSession();
-		return completedSession;
+	public Optional<CompletedSession> stopCurrentSession() {
+		Optional<RunningSession> runningSession = storageManager.getRunningSession();
+		CompletedSession completedSession = null;
+		if (runningSession.isPresent()) {
+		    completedSession = runningSession.get().finish(clock.instant());
+		    storageManager.storeCompletedSession(completedSession);
+			storageManager.clearRunningSession();
+		}
+		return Optional.ofNullable(completedSession);
 	}
 
 	public Optional<RunningSession> getCurrentSession() {

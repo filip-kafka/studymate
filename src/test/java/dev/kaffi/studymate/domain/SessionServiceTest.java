@@ -128,7 +128,7 @@ class SessionServiceTest {
 		service.startSession("Java Generics");
 		clock.advance(Duration.ofHours(2));
 
-		CompletedSession completed = service.stopCurrentSession();
+		CompletedSession completed = service.stopCurrentSession().get();
 
 		assertAll(
 				() -> assertEquals(new Topic("Java Generics"), completed.topic()),
@@ -142,7 +142,7 @@ class SessionServiceTest {
 		service.startSession("Java Generics");
 		clock.advance(Duration.ofHours(2));
 
-		CompletedSession completed = service.stopCurrentSession();
+		CompletedSession completed = service.stopCurrentSession().get();
 
 		assertEquals(SAFE_DATE.plus(Duration.ofHours(2)), completed.end());
 	}
@@ -153,7 +153,7 @@ class SessionServiceTest {
 		service.startSession("Java Generics");
 		clock.advance(Duration.ofHours(2));
 
-		CompletedSession completed = service.stopCurrentSession();
+		CompletedSession completed = service.stopCurrentSession().get();
 
 		assertEquals(Duration.ofHours(2), completed.duration());
 	}
@@ -162,7 +162,7 @@ class SessionServiceTest {
 	@DisplayName("A session stopped immediately has zero duration")
 	void endSession_allowsZeroLengthSession() {
 		service.startSession("Java Generics");
-		CompletedSession completed = service.stopCurrentSession();
+		CompletedSession completed = service.stopCurrentSession().get();
 
 		assertEquals(Duration.ZERO, completed.duration());
 	}
@@ -173,7 +173,7 @@ class SessionServiceTest {
 		service.startSession("Java Generics");
 		clock.advance(Duration.ofHours(2));
 
-		CompletedSession completed = service.stopCurrentSession();
+		CompletedSession completed = service.stopCurrentSession().get();
 
 		assertEquals(List.of(completed), storageManager.allCompletedSessions());
 	}
@@ -208,7 +208,7 @@ class SessionServiceTest {
 
 		service.startSession("Java Generics");
 		clock.advance(Duration.ofMinutes(120));
-		CompletedSession completed = service.stopCurrentSession();
+		CompletedSession completed = service.stopCurrentSession().get();
 
 		ZonedDateTime localStart = completed.start().atZone(PRAGUE);
 		ZonedDateTime localEnd = completed.end().atZone(PRAGUE);
