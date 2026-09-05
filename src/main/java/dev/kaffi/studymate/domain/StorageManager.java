@@ -5,13 +5,13 @@ import java.util.List;
 import java.util.Optional;
 
 public interface StorageManager {
-	void storeRunningSession(RunningSession session);
+    void storeRunningSession(RunningSession session);
 
-	void clearRunningSession();
+    void clearRunningSession();
 
-	Optional<RunningSession> getRunningSession();
+    Optional<RunningSession> getRunningSession();
 
-	void storeCompletedSession(CompletedSession session);
+    void storeCompletedSession(CompletedSession session);
 
-	List<CompletedSession> getCompletedSessions(Instant from, Instant toExclusive);
+    List<CompletedSession> getCompletedSessions(Instant from, Instant toExclusive);
 }
