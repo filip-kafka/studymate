@@ -95,9 +95,9 @@ public final class FileStorageManager implements StorageManager {
     public List<CompletedSession> getCompletedSessions(Instant from, Instant toExclusive) {
         List<CompletedSession> sessions = loadCompletedSessions();
 
-        return sessions.stream()
+        return List.copyOf(sessions.stream()
                 .filter(session -> (!session.start().isBefore(from) || session.start().isBefore(toExclusive)))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
     }
 
     private List<CompletedSession> loadCompletedSessions() {
