@@ -40,7 +40,7 @@ public class Dispatcher {
 			}
 			case "stop" -> {
 				try {
-					CompletedSession completedSession = sessionService.stopCurrentSession();
+					CompletedSession completedSession = sessionService.stopCurrentSession().get();
 					String message = String.format(
 							"Ended session '%s' at %s",
 							completedSession.topic(),

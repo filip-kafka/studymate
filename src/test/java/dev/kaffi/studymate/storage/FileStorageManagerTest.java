@@ -5,8 +5,8 @@ import dev.kaffi.studymate.domain.RunningSession;
 import dev.kaffi.studymate.domain.SessionAlreadyRunningException;
 import dev.kaffi.studymate.domain.StorageException;
 import dev.kaffi.studymate.domain.Topic;
+
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -31,8 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FileStorageManagerTest {
 
-	private static final Instant SAFE_DATE = Instant.parse("2026-03-15T09:00:00Z");
-	private static final Topic TOPIC = new Topic("Java Generics");
+	private static final Instant SAFE_DATE = Instant.parse("2026-03-29T09:00:00Z"); // around end of March
+	private static final Topic TOPIC = new Topic("Java Unit Testing");
 
 	private static final String RUNNING_FILE = "running.txt";
 	private static final String COMPLETED_FILE = "store.tsv";
@@ -116,7 +116,7 @@ class FileStorageManagerTest {
 	void storeRunningSession_writesTopicAndStartSeparatedByTab() {
 		manager.storeRunningSession(new RunningSession(TOPIC, SAFE_DATE));
 
-		assertEquals("Java Generics\t2026-03-15T09:00:00Z\n", read(RUNNING_FILE));
+		assertEquals("Java Unit Testing\t2026-03-29T09:00:00Z\n", read(RUNNING_FILE));
 	}
 
 	@Test
@@ -221,7 +221,7 @@ class FileStorageManagerTest {
 
 		manager.clearRunningSession();
 
-		assertEquals("Java Generics\t2026-03-15T09:00:00Z\t2026-03-15T09:01:00Z\n", read(COMPLETED_FILE));
+		assertEquals("Java Unit Testing\t2026-03-29T09:00:00Z\t2026-03-29T09:01:00Z\n", read(COMPLETED_FILE));
 	}
 
 	// ====================
@@ -279,8 +279,8 @@ class FileStorageManagerTest {
 	@ValueSource(strings = {
 			"",
 			"\n",
-			"Java Generics\n",
-			"Java Generics\t2026-03-15T09:00:00Z\tJava Streams\n"
+			"Java Unit Testing\n",
+			"Java Unit Testing\t2026-03-29T09:00:00Z\tJava Streams\n"
 	})
 	@DisplayName("A running session file with the wrong number of fields is reported as corrupted")
 	void getRunningSession_rejectsWrongFieldCount(String content) {
@@ -290,10 +290,10 @@ class FileStorageManagerTest {
 	}
 
 	@ParameterizedTest(name = "start = \"{0}\"")
-	@ValueSource(strings = {"not-an-instant", "2026-03-15", "2026-13-15T09:00:00Z", " ", "Java Generics\t\n"})
+	@ValueSource(strings = {"not-an-instant", "2026-03-15", "2026-13-15T09:00:00Z", " ", "Java Unit Testing\t\n"})
 	@DisplayName("A running session file with an unparseable start instant is reported as corrupted")
 	void getRunningSession_rejectsUnparseableStart(String start) {
-		write(RUNNING_FILE, "Java Generics\t" + start + "\n");
+		write(RUNNING_FILE, "Java Unit Testing\t" + start + "\n");
 
 		assertThrows(StorageException.class, () -> manager.getRunningSession());
 	}
@@ -301,7 +301,7 @@ class FileStorageManagerTest {
 	@Test
 	@DisplayName("A running session file with an invalid topic is reported as corrupted")
 	void getRunningSession_rejectsInvalidTopic() {
-		write(RUNNING_FILE, "\t2026-03-15T09:00:00Z\n");
+		write(RUNNING_FILE, "\t2026-03-29T09:00:00Z\n");
 
 		assertThrows(StorageException.class, () -> manager.getRunningSession());
 	}
@@ -331,7 +331,7 @@ class FileStorageManagerTest {
 	void storeCompletedSession_writesTopicStartAndEndSeparatedByTabs() {
 		manager.storeCompletedSession(new CompletedSession(TOPIC, SAFE_DATE, SAFE_DATE.plus(Duration.ofHours(2))));
 
-		assertEquals("Java Generics\t2026-03-15T09:00:00Z\t2026-03-15T11:00:00Z\n", read(COMPLETED_FILE));
+		assertEquals("Java Unit Testing\t2026-03-29T09:00:00Z\t2026-03-29T11:00:00Z\n", read(COMPLETED_FILE));
 	}
 
 	@Test
@@ -341,8 +341,8 @@ class FileStorageManagerTest {
 		manager.storeCompletedSession(new CompletedSession(new Topic("Java Streams"), SAFE_DATE.plusSeconds(120), SAFE_DATE.plusSeconds(180)));
 
 		assertEquals("""
-						Java Generics\t2026-03-15T09:00:00Z\t2026-03-15T09:01:00Z
-						Java Streams\t2026-03-15T09:02:00Z\t2026-03-15T09:03:00Z
+						Java Unit Testing\t2026-03-29T09:00:00Z\t2026-03-29T09:01:00Z
+						Java Streams\t2026-03-29T09:02:00Z\t2026-03-29T09:03:00Z
 						""",
 				read(COMPLETED_FILE));
 	}
@@ -363,7 +363,7 @@ class FileStorageManagerTest {
 	void storeCompletedSession_storesZeroLengthSession() {
 		manager.storeCompletedSession(new CompletedSession(TOPIC, SAFE_DATE, SAFE_DATE));
 
-		assertEquals("Java Generics\t2026-03-15T09:00:00Z\t2026-03-15T09:00:00Z\n", read(COMPLETED_FILE));
+		assertEquals("Java Unit Testing\t2026-03-29T09:00:00Z\t2026-03-29T09:00:00Z\n", read(COMPLETED_FILE));
 	}
 
 	@Test
@@ -402,11 +402,10 @@ class FileStorageManagerTest {
 	}
 
 	@Test
-	@Disabled("getCompletedSessions is not implemented yet - it currently always returns an empty list")
 	@DisplayName("Completed sessions are selected by start instant in the range <from, toExclusive)")
 	void getCompletedSessions_selectsByStartInstantInHalfOpenRange() {
 		CompletedSession before = new CompletedSession(TOPIC, SAFE_DATE.minusSeconds(1), SAFE_DATE);
-		CompletedSession atFrom = new CompletedSession(TOPIC, SAFE_DATE, SAFE_DATE.plusSeconds(60));
+		CompletedSession atFrom = new CompletedSession(TOPIC, SAFE_DATE, SAFE_DATE.plusSeconds(120));
 		CompletedSession inside = new CompletedSession(TOPIC, SAFE_DATE.plusSeconds(30), SAFE_DATE.plusSeconds(90));
 		CompletedSession atTo = new CompletedSession(TOPIC, SAFE_DATE.plusSeconds(60), SAFE_DATE.plusSeconds(120));
 
@@ -414,6 +413,108 @@ class FileStorageManagerTest {
 
 		assertEquals(List.of(atFrom, inside),
 				manager.getCompletedSessions(SAFE_DATE, SAFE_DATE.plusSeconds(60)));
+	}
+
+	@Test
+	@DisplayName("A stored completed session within the range is read back unchanged")
+	void getCompletedSessions_roundTripsStoredSession() {
+		CompletedSession session = new CompletedSession(TOPIC, SAFE_DATE, SAFE_DATE.plusSeconds(60));
+		manager.storeCompletedSession(session);
+
+		assertEquals(List.of(session),
+				manager.getCompletedSessions(SAFE_DATE, SAFE_DATE.plus(Duration.ofDays(1))));
+	}
+
+	@Test
+	@DisplayName("Topic, start and end survive a round trip with full precision and non-ASCII text")
+	void getCompletedSessions_preservesAllFields() {
+		CompletedSession session = new CompletedSession(
+				new Topic("Řetězce v Javě"),
+				Instant.parse("2026-03-29T09:00:00.123456789Z"),
+				Instant.parse("2026-03-29T09:30:00.987654321Z"));
+		manager.storeCompletedSession(session);
+
+		List<CompletedSession> result = manager.getCompletedSessions(SAFE_DATE, SAFE_DATE.plus(Duration.ofDays(1)));
+
+		assertEquals(List.of(session), result);
+	}
+
+	@Test
+	@DisplayName("Sessions starting before the lower bound are excluded")
+	void getCompletedSessions_excludesSessionStartingBeforeFrom() {
+		CompletedSession before = new CompletedSession(TOPIC, SAFE_DATE.minusSeconds(1), SAFE_DATE);
+		CompletedSession inRange = new CompletedSession(TOPIC, SAFE_DATE, SAFE_DATE.plusSeconds(60));
+		manager.storeCompletedSession(before);
+		manager.storeCompletedSession(inRange);
+
+		assertEquals(List.of(inRange),
+				manager.getCompletedSessions(SAFE_DATE, SAFE_DATE.plus(Duration.ofDays(1))));
+	}
+
+	@Test
+	@DisplayName("Sessions starting after the range are excluded")
+	void getCompletedSessions_excludesSessionStartingAfterRange() {
+		CompletedSession inRange = new CompletedSession(TOPIC, SAFE_DATE, SAFE_DATE.plusSeconds(60));
+		CompletedSession after = new CompletedSession(TOPIC, SAFE_DATE.plusSeconds(120), SAFE_DATE.plusSeconds(180));
+		manager.storeCompletedSession(inRange);
+		manager.storeCompletedSession(after);
+
+		assertEquals(List.of(inRange),
+				manager.getCompletedSessions(SAFE_DATE, SAFE_DATE.plusSeconds(60)));
+	}
+
+	@Test
+	@DisplayName("A session starting exactly at the lower bound is included")
+	void getCompletedSessions_includesSessionStartingExactlyAtFrom() {
+		CompletedSession atFrom = new CompletedSession(TOPIC, SAFE_DATE, SAFE_DATE.plusSeconds(60));
+		manager.storeCompletedSession(atFrom);
+
+		assertEquals(List.of(atFrom),
+				manager.getCompletedSessions(SAFE_DATE, SAFE_DATE.plusSeconds(120)));
+	}
+
+	@Test
+	@DisplayName("Characterization: the upper bound is exclusive")
+	void getCompletedSessions_upperBoundIsExclusive() {
+		Instant upperBound = SAFE_DATE.plusSeconds(60);
+		CompletedSession atUpperBound = new CompletedSession(TOPIC, upperBound, upperBound.plusSeconds(60));
+		manager.storeCompletedSession(atUpperBound);
+
+		assertEquals(List.of(),
+				manager.getCompletedSessions(SAFE_DATE, upperBound));
+	}
+
+	@Test
+	@DisplayName("Sessions are returned in the order they were stored")
+	void getCompletedSessions_returnsSessionsInInsertionOrder() {
+		CompletedSession first = new CompletedSession(TOPIC, SAFE_DATE, SAFE_DATE.plusSeconds(60));
+		CompletedSession second = new CompletedSession(new Topic("Java Streams"), SAFE_DATE.plusSeconds(120), SAFE_DATE.plusSeconds(180));
+		manager.storeCompletedSession(first);
+		manager.storeCompletedSession(second);
+
+		assertEquals(List.of(first, second),
+				manager.getCompletedSessions(SAFE_DATE, SAFE_DATE.plus(Duration.ofDays(1))));
+	}
+
+	@Test
+	@DisplayName("Lines without exactly three tab separated fields are skipped")
+	void getCompletedSessions_skipsLinesWithWrongFieldCount() {
+		write(COMPLETED_FILE,
+				"line-without-tabs\n"
+						+ "Java Unit Testing\t2026-03-29T09:00:00Z\t2026-03-29T09:01:00Z\n"
+						+ "Java\tStreams\ttoo\tmany\tfields\n");
+
+		assertEquals(List.of(new CompletedSession(TOPIC, SAFE_DATE, SAFE_DATE.plusSeconds(60))),
+				manager.getCompletedSessions(SAFE_DATE, SAFE_DATE.plus(Duration.ofDays(1))));
+	}
+
+	@Test
+	@DisplayName("A read failure returns empty list")
+	void getCompletedSessions_returnsEmptyOnReadFailure() throws IOException {
+		Files.createDirectory(baseDir.resolve(COMPLETED_FILE));
+
+		assertEquals(List.of(),
+		        manager.getCompletedSessions(SAFE_DATE, SAFE_DATE.plus(Duration.ofDays(1))));
 	}
 
 	// ====================

@@ -1,6 +1,7 @@
 package dev.kaffi.studymate.domain;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -38,5 +39,14 @@ public final class SessionService {
 
 	public Optional<RunningSession> getCurrentSession() {
 		return storageManager.getRunningSession();
+	}
+
+	public Optional<Duration> elapsedTime() {
+	    Duration elapsed = null;
+		Optional<RunningSession> session = getCurrentSession();
+		if (session.isPresent()) {
+		    elapsed = session.get().elapsed(clock.instant());
+		}
+		return Optional.ofNullable(elapsed);
 	}
 }

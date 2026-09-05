@@ -222,4 +222,83 @@ class SessionServiceTest {
 				() -> assertEquals(30, localEnd.getMinute(), "local end minute")
 		);
 	}
+
+	@Test
+	@DisplayName("Stopping when nothing is running returns empty")
+	void endSession_returnsEmptyWhenNothingRunning() {
+		assertEquals(Optional.empty(), service.stopCurrentSession());
+	}
+
+	@Test
+	@DisplayName("Stopping when nothing is running stores no completed session")
+	void endSession_storesNoCompletedSessionWhenNothingRunning() {
+		service.stopCurrentSession();
+
+		assertEquals(List.of(), storageManager.allCompletedSessions());
+	}
+
+	// ====================
+	// getCurrentSession
+	// ====================
+
+	@Test
+	@DisplayName("There is no current session before one is started")
+	void getCurrentSession_returnsEmptyWhenNothingRunning() {
+		assertEquals(Optional.empty(), service.getCurrentSession());
+	}
+
+	@Test
+	@DisplayName("The current session is the one that was started")
+	void getCurrentSession_returnsTheRunningSession() {
+		RunningSession started = service.startSession("Java Generics");
+
+		assertEquals(Optional.of(started), service.getCurrentSession());
+	}
+
+	@Test
+	@DisplayName("There is no current session once it has been stopped")
+	void getCurrentSession_returnsEmptyAfterStopping() {
+		service.startSession("Java Generics");
+		clock.advance(Duration.ofHours(2));
+		service.stopCurrentSession();
+
+		assertEquals(Optional.empty(), service.getCurrentSession());
+	}
+
+	// ====================
+	// elapsedTime
+	// ====================
+
+	@Test
+	@DisplayName("Elapsed time is empty when nothing is running")
+	void elapsedTime_returnsEmptyWhenNothingRunning() {
+		assertEquals(Optional.empty(), service.elapsedTime());
+	}
+
+	@Test
+	@DisplayName("Elapsed time is zero immediately after starting")
+	void elapsedTime_isZeroImmediatelyAfterStart() {
+		service.startSession("Java Generics");
+
+		assertEquals(Optional.of(Duration.ZERO), service.elapsedTime());
+	}
+
+	@Test
+	@DisplayName("Elapsed time reflects the time since the session started")
+	void elapsedTime_reflectsTimeSinceStart() {
+		service.startSession("Java Generics");
+		clock.advance(Duration.ofMinutes(45));
+
+		assertEquals(Optional.of(Duration.ofMinutes(45)), service.elapsedTime());
+	}
+
+	@Test
+	@DisplayName("Elapsed time is empty again once the session has been stopped")
+	void elapsedTime_returnsEmptyAfterStopping() {
+		service.startSession("Java Generics");
+		clock.advance(Duration.ofMinutes(45));
+		service.stopCurrentSession();
+
+		assertEquals(Optional.empty(), service.elapsedTime());
+	}
 }

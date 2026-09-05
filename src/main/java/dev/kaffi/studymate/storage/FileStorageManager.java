@@ -17,6 +17,8 @@ import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -87,7 +89,31 @@ public final class FileStorageManager implements StorageManager {
 
 	@Override
 	public List<CompletedSession> getCompletedSessions(Instant from, Instant toExclusive) {
-		// TODO: will be implemented - returns List of CompletedSessions with start in range of <from, toExclusive)
-		return List.of();
+		List<CompletedSession> sessions = loadCompletedSessions();
+
+		return sessions.stream()
+		               .filter(session -> (!session.start().isBefore(from) && session.start().isBefore(toExclusive)))
+		               .collect(Collectors.toList());
+	}
+
+	private List<CompletedSession> loadCompletedSessions() {
+		List<CompletedSession> result = new ArrayList<>();
+		try {
+			List<String> sessions = Files.readAllLines(completedStore);
+			for (String session : sessions) {
+				String[] fields = session.split("\t", -1);
+				if (fields.length != 3) {
+				    continue;
+				}
+				Topic topic = new Topic(fields[0]);
+				Instant start = Instant.parse(fields[1]);
+				Instant end = Instant.parse(fields[2]);
+				CompletedSession current = new CompletedSession(topic, start, end);
+				result.add(current);
+			}
+		} catch (IOException e) {
+		    return List.of();
+		}
+	    return result;
 	}
 }
