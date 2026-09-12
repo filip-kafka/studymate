@@ -1,5 +1,9 @@
 package dev.kaffi.studymate;
 
+import java.nio.file.Path;
+import java.time.Clock;
+import java.time.Duration;
+
 import dev.kaffi.studymate.cli.Dispatcher;
 import dev.kaffi.studymate.cli.Formatter;
 import dev.kaffi.studymate.cli.Result;
@@ -7,26 +11,20 @@ import dev.kaffi.studymate.domain.SessionService;
 import dev.kaffi.studymate.domain.StorageManager;
 import dev.kaffi.studymate.domain.StudyMateException;
 import dev.kaffi.studymate.storage.FileStorageManager;
-import jdk.internal.org.commonmark.internal.inline.AsteriskDelimiterProcessor;
-
-import java.nio.file.Path;
-import java.time.Clock;
-import java.time.Duration;
 
 public class Main {
 
 	public static void main(String[] args) {
-
-	    String baseDir = System.getenv("STUDYMATE_HOME");
-	    Path path = Path.of(baseDir != null ? baseDir : System.getProperty("user.home")).resolve(".studymate");
-
-	    StorageManager storageManager = new FileStorageManager(path);
-
-	    Formatter formatter = new Formatter();
-		SessionService sessionService = new SessionService(Clock.tick(Clock.systemDefaultZone(), Duration.ofSeconds(1)), storageManager);
-		Dispatcher dispatcher = new Dispatcher(sessionService, formatter);
-
 		try {
+		    String baseDir = System.getenv("STUDYMATE_HOME");
+		    Path path = Path.of(baseDir != null ? baseDir : System.getProperty("user.home")).resolve(".studymate");
+
+		    StorageManager storageManager = new FileStorageManager(path);
+
+		    Formatter formatter = new Formatter();
+			SessionService sessionService = new SessionService(Clock.tick(Clock.systemDefaultZone(), Duration.ofSeconds(1)), storageManager);
+			Dispatcher dispatcher = new Dispatcher(sessionService, formatter);
+
 			Result dispatchResult = dispatcher.dispatch(args);
 
 			switch (dispatchResult.outcome()) {
@@ -47,7 +45,7 @@ public class Main {
 			System.err.println(e.getMessage());
 			System.exit(2);
 		} catch (Exception e) {
-			System.err.println(e.getMessage());
+			System.err.println("Something went wrong");
 			System.exit(2);
 		}
 	}
