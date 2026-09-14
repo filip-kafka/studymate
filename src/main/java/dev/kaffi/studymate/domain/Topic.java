@@ -12,15 +12,15 @@ public record Topic(String value) {
         value = value.strip();
 
         if (value.isEmpty()) {
-            throw new IllegalArgumentException("Topic cannot be empty.");
+            throw new InvalidTopicException("Topic cannot be empty.");
         }
 
         if (value.length() > MAX_LENGTH) {
-            throw new IllegalArgumentException("Topic length must not exceed " + MAX_LENGTH + " characters.");
+            throw new InvalidTopicException("Topic length must not exceed " + MAX_LENGTH + " characters.");
         }
 
         if (value.chars().anyMatch(Character::isISOControl)) {
-            throw new IllegalArgumentException("Topic must not contain ISO control characters.");
+            throw new InvalidTopicException("Topic must not contain ISO control characters.");
         }
     }
 
