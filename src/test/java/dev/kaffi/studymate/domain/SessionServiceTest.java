@@ -107,13 +107,13 @@ class SessionServiceTest {
     @ValueSource(strings = { "", "   ", "Java\tGenerics" })
     @DisplayName("An invalid topic is rejected")
     void startSession_rejectsInvalidTopic(String invalid) {
-        assertThrows(IllegalArgumentException.class, () -> service.startSession(invalid));
+        assertThrows(InvalidTopicException.class, () -> service.startSession(invalid));
     }
 
     @Test
     @DisplayName("A rejected topic leaves nothing stored")
     void startSession_storesNothingWhenTopicIsInvalid() {
-        assertThrows(IllegalArgumentException.class, () -> service.startSession(""));
+        assertThrows(InvalidTopicException.class, () -> service.startSession(""));
         assertEquals(Optional.empty(), storageManager.getRunningSession());
     }
 

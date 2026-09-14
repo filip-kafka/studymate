@@ -28,14 +28,14 @@ class TopicTest {
     @ValueSource(strings = { "", " ", "   ", "\t", "\n", " \t\n " })
     @DisplayName("A blank topic is rejected")
     void constructor_rejectsBlankValue(String blank) {
-        assertThrows(IllegalArgumentException.class, () -> new Topic(blank));
+        assertThrows(InvalidTopicException.class, () -> new Topic(blank));
     }
 
     @ParameterizedTest(name = "value = \"{0}\"")
     @ValueSource(strings = { "Java\tGenerics", "Java\nGenerics", "Java\rGenerics" })
     @DisplayName("A topic containing an ISO control character is rejected")
     void constructor_rejectsIsoControlCharacters(String withControlCharacter) {
-        assertThrows(IllegalArgumentException.class, () -> new Topic(withControlCharacter));
+        assertThrows(InvalidTopicException.class, () -> new Topic(withControlCharacter));
     }
 
     @Test
@@ -51,7 +51,7 @@ class TopicTest {
     void constructor_rejectsValueExceedingMaxLength() {
         String tooLong = "a".repeat(MAX_LENGTH + 1);
 
-        assertThrows(IllegalArgumentException.class, () -> new Topic(tooLong));
+        assertThrows(InvalidTopicException.class, () -> new Topic(tooLong));
     }
 
     @Test

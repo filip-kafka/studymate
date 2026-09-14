@@ -1,6 +1,7 @@
 package dev.kaffi.studymate.storage;
 
 import dev.kaffi.studymate.domain.CompletedSession;
+import dev.kaffi.studymate.domain.InvalidTopicException;
 import dev.kaffi.studymate.domain.RunningSession;
 import dev.kaffi.studymate.domain.SessionAlreadyRunningException;
 import dev.kaffi.studymate.domain.StorageException;
@@ -303,7 +304,7 @@ class FileStorageManagerTest {
     void getRunningSession_rejectsInvalidTopic() {
         write(RUNNING_FILE, "\t2026-03-29T09:00:00Z\n");
 
-        assertThrows(StorageException.class, () -> manager.getRunningSession());
+        assertThrows(InvalidTopicException.class, () -> manager.getRunningSession());
     }
 
     @Test
