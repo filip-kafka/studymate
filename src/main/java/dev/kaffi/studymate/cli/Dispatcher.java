@@ -28,7 +28,7 @@ public class Dispatcher {
 
     public Result dispatch(String[] args) {
         if (args.length == 0) {
-            return new Result("USAGE", SUCCESS);
+            return new Result("Usage:\nstart <topic> - starts a session with given topic\nstop - stops and saves a running session", USER_ERROR);
         }
 
         switch (args[0].toLowerCase()) {
@@ -37,7 +37,7 @@ public class Dispatcher {
                     String topic = Stream.of(args).skip(1).collect(Collectors.joining(" "));
 
                     if (topic.isBlank()) {
-                    	throw new StudyMateException("Session topic must not be blank.");
+                    	return new Result("Topic must not be blank.", USER_ERROR);
                     }
 
                     RunningSession session = sessionService.startSession(topic);
@@ -54,7 +54,7 @@ public class Dispatcher {
                 try {
                 	Optional<CompletedSession> session = sessionService.stopCurrentSession();
                 	if (session.isEmpty()) {
-                		throw new StudyMateException("No session is currently running.");
+                		return new Result("No session is running.", USER_ERROR);
                 	}
                     CompletedSession completedSession = session.get();
                     String message = String.format(
@@ -62,8 +62,10 @@ public class Dispatcher {
                             completedSession.topic().value(),
                             formatter.formatInstant(completedSession.end()));
                     return new Result(message, SUCCESS);
+                } catch (StorageException e) {
+                    return new Result(e.getMessage(), SYSTEM_ERROR);
                 } catch (StudyMateException e) {
-                    return new Result(e.getMessage(), USER_ERROR);
+                	return new Result(e.getMessage(), USER_ERROR);
                 }
             }
 
