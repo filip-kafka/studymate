@@ -18,6 +18,8 @@ import dev.kaffi.studymate.domain.StudyMateException;
 
 public class Dispatcher {
 
+	private static final String USAGE = "Usage:\nstart <topic> - starts a session with given topic\nstop - stops and saves a running session";
+
     private final SessionService sessionService;
     private final Formatter formatter;
 
@@ -28,7 +30,7 @@ public class Dispatcher {
 
     public Result dispatch(String[] args) {
         if (args.length == 0) {
-            return new Result("Usage:\nstart <topic> - starts a session with given topic\nstop - stops and saves a running session", USER_ERROR);
+            return new Result(USAGE, USER_ERROR);
         }
 
         switch (args[0].toLowerCase()) {
@@ -46,7 +48,7 @@ public class Dispatcher {
                     return new Result(message, SUCCESS);
                 } catch (SessionAlreadyRunningException e) {
                 	return new Result(e.getMessage(), USER_ERROR);
-                } catch (StorageException e) {
+                } catch (StudyMateException e) {
                     return new Result(e.getMessage(), SYSTEM_ERROR);
                 }
             }
@@ -70,7 +72,7 @@ public class Dispatcher {
             }
 
             default -> {
-                return new Result("Usage:\nstart <topic> - starts a session with given topic\nstop - stops and saves a running session", USER_ERROR);
+                return new Result(USAGE, USER_ERROR);
             }
         }
     }
