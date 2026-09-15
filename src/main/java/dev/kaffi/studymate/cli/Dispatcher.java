@@ -18,8 +18,6 @@ import dev.kaffi.studymate.domain.StudyMateException;
 
 public class Dispatcher {
 
-  private static final String USAGE = "Usage:\nstart <topic> - starts a session with given topic\nstop - stops and saves a running session";
-
   private final SessionService sessionService;
   private final Formatter formatter;
 
@@ -29,8 +27,9 @@ public class Dispatcher {
   }
 
   public Result dispatch(String[] args) {
+
     if (args.length == 0) {
-      return new Result(USAGE, USER_ERROR);
+      return new Result(formatter.formatUsage(), SUCCESS);
     }
 
     switch (args[0].toLowerCase()) {
@@ -43,9 +42,9 @@ public class Dispatcher {
           }
 
           RunningSession session = sessionService.startSession(topic);
-          String message = String.format("Started session '%s' at %s", session.topic().value(),
-              formatter.formatInstant(session.start()));
-          return new Result(message, SUCCESS);
+
+          return new Result(formatter.formatSessionStartMessage(session.topic().value(), session.start()), SUCCESS);
+
         } catch (SessionAlreadyRunningException e) {
           return new Result(e.getMessage(), USER_ERROR);
         } catch (StudyMateException e) {
@@ -55,15 +54,17 @@ public class Dispatcher {
       case "stop" -> {
         try {
           Optional<CompletedSession> session = sessionService.stopCurrentSession();
+
           if (session.isEmpty()) {
             return new Result("No session is running.", USER_ERROR);
           }
+
           CompletedSession completedSession = session.get();
-          String message = String.format(
-              "Ended session '%s' at %s",
-              completedSession.topic().value(),
-              formatter.formatInstant(completedSession.end()));
-          return new Result(message, SUCCESS);
+
+          return new Result(
+              formatter.formatSessionEndMessage(completedSession.topic().value(), completedSession.duration()),
+              SUCCESS);
+
         } catch (StorageException e) {
           return new Result(e.getMessage(), SYSTEM_ERROR);
         } catch (StudyMateException e) {
@@ -72,7 +73,7 @@ public class Dispatcher {
       }
 
       default -> {
-        return new Result(USAGE, USER_ERROR);
+        return new Result(formatter.formatUsage(), SUCCESS);
       }
     }
   }
