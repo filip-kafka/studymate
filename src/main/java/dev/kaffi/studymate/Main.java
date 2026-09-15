@@ -14,39 +14,40 @@ import dev.kaffi.studymate.storage.FileStorageManager;
 
 public class Main {
 
-	public static void main(String[] args) {
-		try {
-	    String baseDir = System.getenv("STUDYMATE_HOME");
-	    Path path = Path.of(baseDir != null ? baseDir : System.getProperty("user.home")).resolve(".studymate");
+  public static void main(String[] args) {
+    try {
+      String baseDir = System.getenv("STUDYMATE_HOME");
+      Path path = Path.of(baseDir != null ? baseDir : System.getProperty("user.home")).resolve(".studymate");
 
-	    StorageManager storageManager = new FileStorageManager(path);
+      Clock clock = Clock.tick(Clock.systemDefaultZone(), Duration.ofSeconds(1));
+      StorageManager storageManager = new FileStorageManager(path);
+      Formatter formatter = new Formatter(clock.getZone());
 
-	    Formatter formatter = new Formatter();
-			SessionService sessionService = new SessionService(Clock.tick(Clock.systemDefaultZone(), Duration.ofSeconds(1)), storageManager);
-			Dispatcher dispatcher = new Dispatcher(sessionService, formatter);
+      SessionService sessionService = new SessionService(clock, storageManager);
+      Dispatcher dispatcher = new Dispatcher(sessionService, formatter);
 
-			Result dispatchResult = dispatcher.dispatch(args);
+      Result dispatchResult = dispatcher.dispatch(args);
 
-			switch (dispatchResult.outcome()) {
-				case SUCCESS -> {
-					System.out.println(dispatchResult.content());
-					System.exit(0);
-				}
-				case USER_ERROR -> {
-					System.err.println(dispatchResult.content());
-					System.exit(1);
-				}
-				case SYSTEM_ERROR -> {
-					System.err.println(dispatchResult.content());
-					System.exit(2);
-				}
-			}
-		} catch (StudyMateException e) {
-			System.err.println(e.getMessage());
-			System.exit(2);
-		} catch (Exception e) {
-			System.err.println("Something went wrong");
-			System.exit(2);
-		}
-	}
+      switch (dispatchResult.outcome()) {
+        case SUCCESS -> {
+          System.out.println(dispatchResult.content());
+          System.exit(0);
+        }
+        case USER_ERROR -> {
+          System.err.println(dispatchResult.content());
+          System.exit(1);
+        }
+        case SYSTEM_ERROR -> {
+          System.err.println(dispatchResult.content());
+          System.exit(2);
+        }
+      }
+    } catch (StudyMateException e) {
+      System.err.println(e.getMessage());
+      System.exit(2);
+    } catch (Exception e) {
+      System.err.println("Something went wrong");
+      System.exit(2);
+    }
+  }
 }
