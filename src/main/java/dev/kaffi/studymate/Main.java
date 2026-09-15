@@ -16,12 +16,12 @@ public class Main {
 
 	public static void main(String[] args) {
 		try {
-		    String baseDir = System.getenv("STUDYMATE_HOME");
-		    Path path = Path.of(baseDir != null ? baseDir : System.getProperty("user.home")).resolve(".studymate");
+	    String baseDir = System.getenv("STUDYMATE_HOME");
+	    Path path = Path.of(baseDir != null ? baseDir : System.getProperty("user.home")).resolve(".studymate");
 
-		    StorageManager storageManager = new FileStorageManager(path);
+	    StorageManager storageManager = new FileStorageManager(path);
 
-		    Formatter formatter = new Formatter();
+	    Formatter formatter = new Formatter();
 			SessionService sessionService = new SessionService(Clock.tick(Clock.systemDefaultZone(), Duration.ofSeconds(1)), storageManager);
 			Dispatcher dispatcher = new Dispatcher(sessionService, formatter);
 
