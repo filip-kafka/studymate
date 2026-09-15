@@ -18,62 +18,62 @@ import dev.kaffi.studymate.domain.StudyMateException;
 
 public class Dispatcher {
 
-	private static final String USAGE = "Usage:\nstart <topic> - starts a session with given topic\nstop - stops and saves a running session";
+  private static final String USAGE = "Usage:\nstart <topic> - starts a session with given topic\nstop - stops and saves a running session";
 
-    private final SessionService sessionService;
-    private final Formatter formatter;
+  private final SessionService sessionService;
+  private final Formatter formatter;
 
-    public Dispatcher(SessionService sessionService, Formatter formatter) {
-        this.sessionService = Objects.requireNonNull(sessionService, "Session service must not be null");
-        this.formatter = Objects.requireNonNull(formatter, "Formatter must not be null");
+  public Dispatcher(SessionService sessionService, Formatter formatter) {
+    this.sessionService = Objects.requireNonNull(sessionService, "Session service must not be null");
+    this.formatter = Objects.requireNonNull(formatter, "Formatter must not be null");
+  }
+
+  public Result dispatch(String[] args) {
+    if (args.length == 0) {
+      return new Result(USAGE, USER_ERROR);
     }
 
-    public Result dispatch(String[] args) {
-        if (args.length == 0) {
-            return new Result(USAGE, USER_ERROR);
+    switch (args[0].toLowerCase()) {
+      case "start" -> {
+        try {
+          String topic = Stream.of(args).skip(1).collect(Collectors.joining(" "));
+
+          if (topic.isBlank()) {
+            return new Result("Topic must not be blank.", USER_ERROR);
+          }
+
+          RunningSession session = sessionService.startSession(topic);
+          String message = String.format("Started session '%s' at %s", session.topic().value(),
+              formatter.formatInstant(session.start()));
+          return new Result(message, SUCCESS);
+        } catch (SessionAlreadyRunningException e) {
+          return new Result(e.getMessage(), USER_ERROR);
+        } catch (StudyMateException e) {
+          return new Result(e.getMessage(), SYSTEM_ERROR);
         }
-
-        switch (args[0].toLowerCase()) {
-            case "start" -> {
-                try {
-                    String topic = Stream.of(args).skip(1).collect(Collectors.joining(" "));
-
-                    if (topic.isBlank()) {
-                    	return new Result("Topic must not be blank.", USER_ERROR);
-                    }
-
-                    RunningSession session = sessionService.startSession(topic);
-                    String message = String.format("Started session '%s' at %s", session.topic().value(),
-                            formatter.formatInstant(session.start()));
-                    return new Result(message, SUCCESS);
-                } catch (SessionAlreadyRunningException e) {
-                	return new Result(e.getMessage(), USER_ERROR);
-                } catch (StudyMateException e) {
-                    return new Result(e.getMessage(), SYSTEM_ERROR);
-                }
-            }
-            case "stop" -> {
-                try {
-                	Optional<CompletedSession> session = sessionService.stopCurrentSession();
-                	if (session.isEmpty()) {
-                		return new Result("No session is running.", USER_ERROR);
-                	}
-                    CompletedSession completedSession = session.get();
-                    String message = String.format(
-                            "Ended session '%s' at %s",
-                            completedSession.topic().value(),
-                            formatter.formatInstant(completedSession.end()));
-                    return new Result(message, SUCCESS);
-                } catch (StorageException e) {
-                    return new Result(e.getMessage(), SYSTEM_ERROR);
-                } catch (StudyMateException e) {
-                	return new Result(e.getMessage(), USER_ERROR);
-                }
-            }
-
-            default -> {
-                return new Result(USAGE, USER_ERROR);
-            }
+      }
+      case "stop" -> {
+        try {
+          Optional<CompletedSession> session = sessionService.stopCurrentSession();
+          if (session.isEmpty()) {
+            return new Result("No session is running.", USER_ERROR);
+          }
+          CompletedSession completedSession = session.get();
+          String message = String.format(
+              "Ended session '%s' at %s",
+              completedSession.topic().value(),
+              formatter.formatInstant(completedSession.end()));
+          return new Result(message, SUCCESS);
+        } catch (StorageException e) {
+          return new Result(e.getMessage(), SYSTEM_ERROR);
+        } catch (StudyMateException e) {
+          return new Result(e.getMessage(), USER_ERROR);
         }
+      }
+
+      default -> {
+        return new Result(USAGE, USER_ERROR);
+      }
     }
+  }
 }
