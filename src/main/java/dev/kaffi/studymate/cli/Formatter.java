@@ -18,7 +18,7 @@ public class Formatter {
     "list - lists all stored sessions"
   };
 
-  private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
+  private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
   private final ZoneId zoneId;
 
@@ -46,7 +46,7 @@ public class Formatter {
   private String formatDuration(Duration duration) {
       long hours = duration.toHours();
       long minutes = duration.toMinutes() % 60;
-      return String.format("%02dh:02%dm", hours, minutes);
+      return String.format("%dh:%02dm", hours, minutes);
   }
 
 }
